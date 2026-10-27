@@ -1,0 +1,26 @@
+# Artefactos de compilacion de colcon (el PDF prohibe subirlos)
+build/
+install/
+log/
+
+# Python compilado
+__pycache__/
+*.pyc
+
+# Respaldos y archivos temporales locales
+*.bak*
+*.zip
+*.rar
+*.swp
+*~
+
+# Scripts de diagnostico sueltos (reemplazados por hardware_validation)
+diag_*.py
+
+# Documento personal de continuidad entre chats
+README_CONTINUIDAD*.md
+
+# Configuracion de editores
+.vscode/
+.idea/
+.pytest_cache/

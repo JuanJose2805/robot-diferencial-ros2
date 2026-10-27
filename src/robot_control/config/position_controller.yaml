@@ -1,0 +1,28 @@
+# Parametros del controlador de posicion.
+# Los limites de velocidad y deceleracion estan ajustados a la planta actual
+# (max_wheel_acceleration = 1.0 rad/s^2 en el plugin differential_drive).
+position_controller:
+  ros__parameters:
+    use_sim_time: true
+    cmd_vel_topic: /cmd_vel
+    odom_topic: /odom
+    odom_frame: odom
+    control_rate: 20.0
+    odom_timeout: 1.0
+
+    # Ganancias y limites
+    k_rho: 0.8
+    k_alpha: 2.0
+    max_linear: 0.20
+    max_angular: 0.8
+    min_linear: 0.04
+    min_angular: 0.10
+    max_decel: 0.04
+    max_angular_decel: 0.20
+
+    # Llegada
+    goal_tolerance: 0.05
+    yaw_tolerance: 0.05
+    turn_in_place_angle: 0.6
+    turn_exit_angle: 0.15
+    use_goal_yaw: false

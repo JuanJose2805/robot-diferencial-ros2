@@ -1,0 +1,445 @@
+<?xml version="1.0"?>
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro"
+       name="robot_diferencial">
+
+<!-- ########################################################################## -->
+<!-- Parametros iniciales: dimencion, ubicacion, variables (pi, densidad, masa) -->
+<!-- ########################################################################## -->
+
+  <!-- Dimensiones del chasis en metros -->
+  <xacro:property name="chassis_length" value="0.40"/>
+  <xacro:property name="chassis_width" value="0.30"/>
+  <xacro:property name="chassis_height" value="0.10"/>
+  
+  <!-- Dimensiones de las ruedas en metros -->
+  <xacro:property name="wheel_radius" value="0.05"/>
+  <xacro:property name="wheel_width" value="0.04"/>
+  <xacro:property name="wheel_x_offset" value="-0.10"/>
+  <xacro:property name="wheel_y_offset" value="0.17"/>
+
+  <!-- Dimensiones y posicion del caster delantero -->
+  <xacro:property name="caster_radius" value="${wheel_radius}"/>
+  <xacro:property name="caster_x_offset" value="0.10"/>
+  <xacro:property name="caster_z_offset" value="${-caster_radius}"/>
+
+  <!-- Constante pi -->
+  <xacro:property name="pi_const" value="3.14159265"/>
+
+  <!-- Masas en kg (realistas, evitan relacion de masas extrema que
+       desestabiliza el solver ODE y hace que el robot "se mueva solo") -->
+  <xacro:property name="chassis_mass" value="5.0"/>
+  <xacro:property name="wheel_mass" value="0.5"/>
+  <xacro:property name="caster_mass" value="0.2"/>
+
+<!-- ################################################################ -->
+<!--       Propiedades del cuerpo principal del robot (base_link)     -->
+<!-- ################################################################ -->
+
+  <!-- Cuerpo principal del robot -->
+  <link name="base_link">
+
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+
+      <geometry>
+        <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
+      </geometry>
+
+      <material name="blue">
+        <color rgba="0.1 0.3 0.8 1.0"/>
+      </material>
+    </visual>
+
+    <!-- Geometria de colision del chasis -->
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+
+      <geometry>
+        <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
+      </geometry>
+    </collision>
+
+    <!-- Propiedades de inercia del chasis -->
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+
+      <mass value="${chassis_mass}"/>
+
+      <inertia
+        ixx="${chassis_mass * (chassis_width**2 + chassis_height**2) / 12.0}"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="${chassis_mass * (chassis_length**2 + chassis_height**2) / 12.0}"
+        iyz="0.0"
+        izz="${chassis_mass * (chassis_length**2 + chassis_width**2) / 12.0}"/>
+    </inertial> 
+
+  </link>
+
+<!-- ################################################################ -->
+<!--                    Propiedades rueda izquierda                   -->
+<!-- ################################################################ -->
+
+  <!-- Rueda izquierda -->
+  <link name="left_wheel_link">
+
+    <visual>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+
+      <geometry>
+        <cylinder radius="${wheel_radius}"
+                  length="${wheel_width}"/>
+      </geometry>
+
+      <material name="wheel_black">
+        <color rgba="0.1 0.1 0.1 1.0"/>
+      </material>
+    </visual>
+
+    <!-- Geometria de colision de la rueda izquierda -->
+    <collision>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="${wheel_radius}"
+                  length="${wheel_width}"/>
+      </geometry>
+    </collision>
+
+    <!-- Propiedades de inercia de la rueda izquierda -->
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+
+      <mass value="${wheel_mass}"/>
+
+      <inertia
+        ixx="${wheel_mass * (3*wheel_radius**2 + wheel_width**2) / 12.0}"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="${wheel_mass * wheel_radius**2 / 2.0}"
+        iyz="0.0"
+        izz="${wheel_mass * (3*wheel_radius**2 + wheel_width**2) / 12.0}"/>
+    </inertial>
+
+  </link>
+
+  <!-- Articulacion de la rueda izquierda -->
+  <joint name="left_wheel_joint" type="continuous">
+
+    <parent link="base_link"/>
+    <child link="left_wheel_link"/>
+
+    <origin xyz="${wheel_x_offset} ${wheel_y_offset} ${-wheel_radius}"
+            rpy="0 0 0"/>
+
+    <axis xyz="0 1 0"/>
+    <dynamics damping="0.05" friction="0.05"/>
+
+  </joint>
+
+<!-- ################################################################ -->
+<!--                     Propieades rueda derecha                     -->
+<!-- ################################################################ -->
+
+  <!-- Rueda derecha -->
+  <link name="right_wheel_link">
+
+    <visual>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+
+      <geometry>
+        <cylinder radius="${wheel_radius}"
+                  length="${wheel_width}"/>
+      </geometry>
+
+      <material name="wheel_black_right">
+        <color rgba="0.1 0.1 0.1 1.0"/>
+      </material>
+    </visual>
+
+    <!-- Geometria de colision de la rueda derecha -->
+    <collision>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+
+      <geometry>
+        <cylinder radius="${wheel_radius}"
+                  length="${wheel_width}"/>
+      </geometry>
+    </collision>
+
+    <!-- Masa e inercia de la rueda derecha -->
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+
+      <mass value="${wheel_mass}"/>
+
+      <inertia
+        ixx="${wheel_mass * (3*wheel_radius**2 + wheel_width**2) / 12.0}"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="${wheel_mass * wheel_radius**2 / 2.0}"
+        iyz="0.0"
+        izz="${wheel_mass * (3*wheel_radius**2 + wheel_width**2) / 12.0}"/>
+    </inertial>
+
+  </link>
+
+  <!-- Articulacion de la rueda derecha -->
+  <joint name="right_wheel_joint" type="continuous">
+
+    <parent link="base_link"/>
+    <child link="right_wheel_link"/>
+
+    <origin xyz="${wheel_x_offset} -${wheel_y_offset} ${-wheel_radius}"
+            rpy="0 0 0"/>
+
+    <axis xyz="0 1 0"/>
+    <dynamics damping="0.05" friction="0.05"/>
+
+  </joint>
+
+<!-- ################################################################ -->
+<!--                Propiedades esfera de apoyo (caster)              -->
+<!-- ################################################################ -->
+
+  <!-- Esfera de apoyo delantera -->
+  <link name="caster_link">
+
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+
+      <geometry>
+        <sphere radius="${caster_radius}"/>
+      </geometry>
+
+      <material name="caster_gray">
+        <color rgba="0.7 0.7 0.7 1.0"/>
+      </material>
+
+    </visual>
+
+    <!-- Geometria de colision del caster -->
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+
+      <geometry>
+        <sphere radius="${caster_radius}"/>
+      </geometry>
+    </collision>
+
+    <!-- Masa e inercia del caster -->
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+
+      <mass value="${caster_mass}"/>
+
+      <inertia
+        ixx="${(2.0/5.0) * caster_mass * caster_radius**2}"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="${(2.0/5.0) * caster_mass * caster_radius**2}"
+        iyz="0.0"
+        izz="${(2.0/5.0) * caster_mass * caster_radius**2}"/>
+    </inertial>
+
+  </link>
+
+  <!-- Articulacion fija del caster delantero -->
+  <joint name="caster_joint" type="fixed">
+
+    <parent link="base_link"/>
+    <child link="caster_link"/>
+
+    <origin xyz="${caster_x_offset} 0 ${caster_z_offset}"
+            rpy="0 0 0"/>
+
+  </joint>
+
+<!-- ========================================== -->
+<!--               SENSOR LIDAR 2D              -->
+<!-- ========================================== -->
+
+  <!-- Cuerpo del sensor -->
+  <link name="lidar_link">
+
+    <visual>
+      <geometry>
+        <cylinder radius="0.035" length="0.04"/>
+      </geometry>
+      <material name="lidar_black">
+        <color rgba="0.15 0.15 0.15 1.0"/>
+      </material>
+    </visual>
+
+    <collision>
+      <geometry>
+        <cylinder radius="0.035" length="0.04"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <mass value="0.2"/>
+      <inertia
+        ixx="0.000108167"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="0.000108167"
+        iyz="0.0"
+        izz="0.0001225"/>
+    </inertial>
+
+  </link>
+
+  <!-- Unión fija entre chasis y LiDAR -->
+  <joint name="lidar_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="lidar_link"/>
+    <origin xyz="0 0 0.07" rpy="0 0 0"/>
+  </joint>
+
+<!-- ========================================== -->
+<!-- SENSOR LASER LIDAR 2D - GAZEBO CLASSIC     -->
+<!-- ========================================== -->
+
+  <gazebo reference="lidar_link">
+    <material>Gazebo/Black</material>
+
+    <sensor name="lidar_2d" type="ray">
+      <always_on>true</always_on>
+      <visualize>true</visualize>
+      <update_rate>10</update_rate>
+
+      <ray>
+        <scan>
+          <horizontal>
+            <samples>360</samples>
+            <resolution>1</resolution>
+            <min_angle>${-pi_const}</min_angle>
+            <max_angle>${pi_const}</max_angle>
+          </horizontal>
+        </scan>
+
+        <range>
+          <min>0.26</min>
+          <max>10.0</max>
+          <resolution>0.01</resolution>
+        </range>
+      </ray>
+
+      <plugin name="gazebo_ros_lidar" filename="libgazebo_ros_ray_sensor.so">
+        <ros>
+          <remapping>~/out:=scan</remapping>
+        </ros>
+        <output_type>sensor_msgs/LaserScan</output_type>
+        <frame_name>lidar_link</frame_name>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+<!-- ################################################################ -->
+<!--                          Ajustes Gazebo                          -->
+<!-- ################################################################ -->
+
+  <!-- Friccion de la rueda izquierda en Gazebo -->
+  <gazebo reference="left_wheel_link">
+    <maxContacts>1</maxContacts>
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+    <kp>1000000.0</kp>
+    <kd>100.0</kd>
+    <minDepth>0.001</minDepth>
+    <maxVel>0.1</maxVel>
+  </gazebo>
+
+  <!-- Friccion de la rueda derecha en Gazebo -->
+  <gazebo reference="right_wheel_link">
+    <maxContacts>1</maxContacts>
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+    <kp>1000000.0</kp>
+    <kd>100.0</kd>
+    <minDepth>0.001</minDepth>
+    <maxVel>0.1</maxVel>
+  </gazebo>
+
+  <!-- Friccion del caster delantero -->
+  <gazebo reference="caster_link">
+    <mu1>0.0</mu1>
+    <mu2>0.0</mu2>
+    <kp>1000000.0</kp>
+    <kd>100.0</kd>
+    <minDepth>0.001</minDepth>
+    <maxVel>0.1</maxVel>
+  </gazebo>
+
+  <!-- Colores de los componentes en Gazebo -->
+  <gazebo reference="base_link">
+    <material>Gazebo/Blue</material>
+  </gazebo>
+
+  <gazebo reference="left_wheel_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+
+  <gazebo reference="right_wheel_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+
+  <gazebo reference="caster_link">
+    <material>Gazebo/Grey</material>
+  </gazebo>
+
+<!-- ######################################## -->
+<!-- Controlador de movimiento diferencial -->
+<!-- ######################################## -->
+  <gazebo>
+    <plugin name="differential_drive"
+            filename="libgazebo_ros_diff_drive.so">
+
+      <!-- Frecuencia de actualizacion -->
+      <update_rate>30</update_rate>
+
+      <!-- Articulaciones de las ruedas -->
+      <left_joint>left_wheel_joint</left_joint>
+      <right_joint>right_wheel_joint</right_joint>
+
+      <!-- Geometria del robot -->
+      <wheel_separation>${2 * wheel_y_offset}</wheel_separation>
+      <wheel_diameter>${2 * wheel_radius}</wheel_diameter>
+
+      <!-- Limites del controlador -->
+      <max_wheel_torque>1.0</max_wheel_torque>
+      <max_wheel_acceleration>1.0</max_wheel_acceleration>
+
+      <!-- Topico de comandos (unica entrada de movimiento) -->
+      <command_topic>cmd_vel</command_topic>
+
+      <!-- Publicacion de odometria -->
+      <publish_odom>true</publish_odom>
+      <publish_odom_tf>true</publish_odom_tf>
+      <publish_wheel_tf>false</publish_wheel_tf>
+
+      <!-- Marcos de referencia -->
+      <odometry_frame>odom</odometry_frame>
+      <robot_base_frame>base_link</robot_base_frame>
+
+    </plugin>
+  </gazebo>
+
+<!-- ========================================== -->
+<!--    PUBLICACION DE ESTADOS DE LAS RUEDAS    -->
+<!-- ========================================== -->
+
+  <gazebo>
+    <plugin name="joint_state_publisher"
+            filename="libgazebo_ros_joint_state_publisher.so">
+
+      <update_rate>30</update_rate>
+
+      <joint_name>left_wheel_joint</joint_name>
+      <joint_name>right_wheel_joint</joint_name>
+
+    </plugin>
+  </gazebo>
+
+</robot>
