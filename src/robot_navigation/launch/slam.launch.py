@@ -20,10 +20,16 @@ slam_toolbox en modo mapeo asincrono, que construye el mapa 2D a partir del
 LiDAR (/scan) y la odometria (/odom) y publica la TF map -> odom. RViz2 se
 abre con una configuracion propia que muestra el mapa en construccion.
 
-Para mapear: mueve el robot con WASD por toda la arena. Para guardar el mapa
-(en otra terminal):
-  ros2 run nav2_map_server map_saver_cli -f \
-    ~/robotics40_ws/src/robot_navigation/maps/arena
+Para mapear: mueve el robot con WASD por toda la arena. Al terminar, y antes
+de cerrar, guarda el mapa en otra terminal (dos formatos):
+  1. Imagen + yaml (para verlo y para el costmap):
+     ros2 run nav2_map_server map_saver_cli -f \
+       ~/robotics40_ws/src/robot_navigation/maps/arena \
+       --ros-args -p save_map_timeout:=10000
+  2. Grafo de poses (lo usa navigation.launch.py para localizarse):
+     ros2 service call /slam_toolbox/serialize_map \
+       slam_toolbox/srv/SerializePoseGraph \
+       "{filename: '$HOME/robotics40_ws/src/robot_navigation/maps/arena'}"
 
 Ejemplos:
   ros2 launch robot_navigation slam.launch.py
@@ -60,7 +66,7 @@ def generate_launch_description():
     ]
 
     # 1. Simulacion + teleop WASD (sin su RViz ni el controlador de
-    #    posicion: durante el mapeo el robot se mueve con el teclado)
+    #    posicion: durante el mapeo el robot se mueve con el teclado).
     #    GroupAction aisla los argumentos: en Foxy, los launch_arguments de
     #    un include son globales, y su rviz:=false apagaria tambien el RViz
     #    de SLAM de este archivo.

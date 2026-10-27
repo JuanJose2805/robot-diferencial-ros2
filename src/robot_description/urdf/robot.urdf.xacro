@@ -442,4 +442,16 @@
     </plugin>
   </gazebo>
 
+  <!-- Marco base_footprint (REP-105): en el suelo, bajo el centro del eje de
+       las ruedas, que es el punto sobre el que gira un robot diferencial.
+       Nav2 lo usa como referencia del robot; si usara base_link (centro del
+       chasis, 10 cm por delante del eje), al girar en el sitio el punto de
+       referencia se desplazaria y el robot no lograria quedarse en la meta. -->
+  <link name="base_footprint"/>
+  <joint name="base_footprint_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="base_footprint"/>
+    <origin xyz="${wheel_x_offset} 0 ${-2 * wheel_radius}" rpy="0 0 0"/>
+  </joint>
+
 </robot>
