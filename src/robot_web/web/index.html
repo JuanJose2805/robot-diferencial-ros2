@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Consola del robot diferencial</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <!-- roslibjs: cliente JavaScript de rosbridge (Robot Web Tools) -->
+  <script src="https://cdn.jsdelivr.net/npm/roslib@1.4.1/build/roslib.min.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <h1>Robot diferencial</h1>
+    <ul class="links" aria-label="Estado de las conexiones">
+      <li class="link" id="link-ros" data-state="off"><span class="dot"></span>rosbridge</li>
+      <li class="link" id="link-nav" data-state="off"><span class="dot"></span>Nav2</li>
+      <li class="link" id="link-slam" data-state="off"><span class="dot"></span>SLAM</li>
+    </ul>
+    <p class="mode">Modo <strong id="mode-name">—</strong></p>
+    <button type="button" class="danger" id="btn-shutdown" title="Cierra Gazebo, Nav2, rosbridge y esta interfaz">Apagar sistema</button>
+  </header>
+  <div class="shutdown-banner" id="shutdown-banner" role="status" hidden>
+    <p>Sistema apagado. Ya puedes cerrar esta pestaña; para volver a usarlo, lanza
+    <code>ros2 launch robot_web web.launch.py</code> otra vez.</p>
+    <button type="button" class="banner-close" id="btn-banner-close" aria-label="Cerrar aviso">✕</button>
+  </div>
+
+  <main class="layout">
+    <!-- Mapa: la vista principal. Clic = meta, arrastrar = orientacion -->
+    <section class="map-area" aria-label="Mapa">
+      <div class="map-toolbar">
+        <div class="segmented" role="radiogroup" aria-label="Accion del clic">
+          <button type="button" role="radio" aria-checked="true" data-tool="goal">Ir al punto</button>
+          <button type="button" role="radio" aria-checked="false" data-tool="route">Agregar a la ruta</button>
+        </div>
+        <div class="segmented" role="radiogroup" aria-label="Qué mapa mostrar">
+          <button type="button" role="radio" aria-checked="true" data-layer="plano" title="Plano dibujado a partir del mundo de Gazebo">Plano</button>
+          <button type="button" role="radio" aria-checked="false" data-layer="slam" title="Mapa construido por SLAM">SLAM</button>
+          <button type="button" role="radio" aria-checked="false" data-layer="both" title="Mapa SLAM encima del plano">Ambos</button>
+        </div>
+        <button type="button" class="ghost" id="btn-fit">Encuadrar</button>
+        <button type="button" class="ghost" id="btn-rotate" title="Gira la vista 90°">Girar 90°</button>
+        <button type="button" class="ghost" id="btn-scan" aria-pressed="true" title="Muestra donde pega el LiDAR">Láser</button>
+        <button type="button" class="ghost" id="btn-follow" aria-pressed="false">Seguir robot</button>
+        <span class="cursor-readout" id="cursor-readout"></span>
+      </div>
+      <div class="map-stage" id="map-stage">
+        <canvas id="map-canvas"></canvas>
+        <p class="map-empty" id="map-empty">
+          Sin mapa todavía. Lanza el modo <b>slam</b> para construirlo o
+          <b>navigation</b> para cargar el guardado. El robot y el LiDAR se
+          ven igual sobre la odometría.
+        </p>
+      </div>
+      <footer class="map-footer">
+        <div><span>Robot</span><strong id="pose-readout">sin pose</strong></div>
+        <div><span>Navegación</span><strong id="nav-readout">en espera</strong></div>
+        <p class="map-hint">Haz clic para elegir el punto y arrastra para fijar hacia dónde mira. La rueda acerca la vista; con clic derecho la mueves.</p>
+      </footer>
+    </section>
+
+    <aside class="rail">
+      <!-- Teleoperacion + vista del LiDAR -->
+      <section class="panel" aria-labelledby="h-drive">
+        <h2 id="h-drive">Conducción</h2>
+        <div class="drive">
+          <div class="pad" id="pad" aria-label="Mando de teleoperación">
+            <button type="button" data-dir="fwd" style="grid-area: w" aria-label="Avanzar">W</button>
+            <button type="button" data-dir="left" style="grid-area: a" aria-label="Girar a la izquierda">A</button>
+            <button type="button" class="stop" id="btn-stop" style="grid-area: x" aria-label="Detener">■</button>
+            <button type="button" data-dir="right" style="grid-area: d" aria-label="Girar a la derecha">D</button>
+            <button type="button" data-dir="back" style="grid-area: s" aria-label="Retroceder">S</button>
+          </div>
+          <div class="lidar">
+            <canvas id="lidar-canvas" width="220" height="220" aria-label="LiDAR en tiempo real"></canvas>
+            <div class="lidar-meta">
+              <span id="lidar-closest">—</span>
+              <span id="lidar-rate"></span>
+            </div>
+            <div class="segmented small" role="radiogroup" aria-label="Alcance de la vista">
+              <button type="button" role="radio" aria-checked="false" data-range="2">2 m</button>
+              <button type="button" role="radio" aria-checked="true" data-range="5">5 m</button>
+              <button type="button" role="radio" aria-checked="false" data-range="10">10 m</button>
+            </div>
+          </div>
+        </div>
+        <label class="slider">
+          <span>Velocidad lineal</span>
+          <input type="range" id="lin-speed" min="0.05" max="0.5" step="0.01" value="0.22">
+          <output id="lin-out">0.22 m/s</output>
+        </label>
+        <label class="slider">
+          <span>Velocidad de giro</span>
+          <input type="range" id="ang-speed" min="0.1" max="1.5" step="0.05" value="0.8">
+          <output id="ang-out">0.80 rad/s</output>
+        </label>
+        <p class="hint">Teclado: W A S D o flechas, espacio para frenar. Mover el robot a mano cancela la navegación.</p>
+      </section>
+
+      <!-- Metas por coordenadas y ruta de waypoints -->
+      <section class="panel" aria-labelledby="h-nav">
+        <h2 id="h-nav">Navegación</h2>
+        <form class="coords" id="goal-form" autocomplete="off">
+          <label>x <input type="number" step="any" id="goal-x" required value="0"></label>
+          <label>y <input type="number" step="any" id="goal-y" required value="0"></label>
+          <label>θ° <input type="number" step="any" id="goal-yaw" value="0"></label>
+          <div class="actions">
+            <button type="submit" class="primary" id="btn-go">Ir a la meta</button>
+            <button type="button" id="btn-add">Agregar a la ruta</button>
+          </div>
+        </form>
+        <button type="button" class="wide" id="btn-home" title="Vuelve al punto y la orientación con que apareció el robot">Volver al inicio</button>
+
+        <div class="route">
+          <div class="route-head">
+            <h3>Ruta <span id="route-count"></span></h3>
+            <button type="button" class="ghost" id="btn-clear-route">Vaciar</button>
+          </div>
+          <ol id="route-list" class="route-list"></ol>
+          <p class="empty" id="route-empty">Agrega puntos con el formulario o eligiendo «Agregar a la ruta» y haciendo clic en el mapa.</p>
+          <button type="button" class="primary wide" id="btn-run-route" disabled>Recorrer la ruta</button>
+        </div>
+
+        <div class="nav-state" id="nav-state" data-state="idle">
+          <div class="nav-state-text">
+            <strong id="nav-title">En espera</strong>
+            <span id="nav-detail">Sin meta activa</span>
+          </div>
+          <button type="button" class="danger" id="btn-cancel" disabled>Cancelar</button>
+        </div>
+      </section>
+
+      <!-- Herramientas de SLAM -->
+      <section class="panel" aria-labelledby="h-slam">
+        <h2 id="h-slam">Mapa</h2>
+        <dl class="map-facts">
+          <div><dt>Tamaño</dt><dd id="map-size">—</dd></div>
+          <div><dt>Resolución</dt><dd id="map-res">—</dd></div>
+        </dl>
+        <button type="button" class="wide" id="btn-pause" hidden>Pausar el mapeo</button>
+        <form class="save" id="save-form" autocomplete="off" hidden>
+          <label for="map-name">Guardar el mapa como</label>
+          <div class="save-row">
+            <input type="text" id="map-name" placeholder="arena_nueva" maxlength="64" pattern="[A-Za-z0-9_\-]*">
+            <button type="submit" id="btn-save">Guardar</button>
+          </div>
+          <p class="hint" id="save-hint">Se guarda como imagen (.pgm/.yaml) y como grafo de poses para navegar después.</p>
+        </form>
+      </section>
+
+      <section class="panel log-panel" aria-labelledby="h-log">
+        <h2 id="h-log">Registro</h2>
+        <ol class="log" id="log" aria-live="polite"></ol>
+      </section>
+    </aside>
+  </main>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

@@ -384,7 +384,7 @@ class HardwareValidation(Node):
         passed = sum(1 for r in self.results if r[2])
         total = len(self.results)
         lines = ['', '=' * 72,
-                 ' INFORME DE VALIDACION DE HARDWARE SIMULADO (etapa 2.3)',
+                 ' INFORME DE VALIDACION DE HARDWARE SIMULADO',
                  '=' * 72]
         block = None
         for b, name, ok, detail in self.results:

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-Etapa 2.4.2: navegacion autonoma con Nav2 sobre el mapa de la arena.
+Navegacion autonoma con Nav2 sobre el mapa guardado de la arena.
 
 Levanta:
   1. La simulacion (Gazebo + robot + teleop WASD para cerrar todo).

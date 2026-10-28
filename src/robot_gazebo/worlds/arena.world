@@ -2,9 +2,9 @@
 
 <sdf version="1.6">
 
-  <!-- Arena de pruebas Robotics 4.0: 10 x 10 m con obstaculos.
+  <!-- Arena de pruebas: 10 x 10 m con obstaculos.
        El robot aparece en (0, 0); esa zona se mantiene libre. -->
-  <world name="robotics40_arena">
+  <world name="arena">
 
     <gravity>0 0 -9.81</gravity>
 

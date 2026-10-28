@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-Fase de validacion de hardware simulado (etapa 2.3).
+Fase de validacion de hardware simulado.
 
 Levanta la simulacion completa SIN teleop (para que nadie mueva el robot
 durante las pruebas) y ejecuta el nodo hardware_validation, que prueba

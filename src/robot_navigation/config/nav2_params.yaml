@@ -8,7 +8,10 @@
 #     base_footprint esta 0.10 m detras del centro del chasis
 #   - velocidades y aceleraciones limitadas a lo que valida nuestra planta
 #     (max 0.22 m/s y 0.8 rad/s, aceleracion del plugin = 1.0)
-#   - tolerancia de llegada 0.10 m (el original usa 0.25 m)
+#   - llegada precisa: 5 cm de posicion y 0.05 rad (~3 grados) de
+#     orientacion (el original usa 0.25 m y 0.25 rad). La odometria simulada
+#     y la localizacion de slam_toolbox son de milimetros, asi que se puede
+#     exigir; con 0.25 rad el robot quedaba hasta 14 grados torcido
 #   - sin amcl ni map_server: la localizacion y el mapa los da slam_toolbox
 #     en modo localizacion (config/slam_toolbox_localization.yaml)
 #   - costmap local con obstacle_layer 2D (el LiDAR es 2D; sin voxeles)
@@ -75,8 +78,8 @@ controller_server:
     # Cuando se da la meta por alcanzada
     goal_checker:
       plugin: "nav2_controller::SimpleGoalChecker"
-      xy_goal_tolerance: 0.10
-      yaw_goal_tolerance: 0.25
+      xy_goal_tolerance: 0.05
+      yaw_goal_tolerance: 0.05
       stateful: True
     # Controlador local DWB: simula trayectorias y elige la mejor puntuada
     FollowPath:
@@ -103,7 +106,7 @@ controller_server:
       linear_granularity: 0.05
       angular_granularity: 0.025
       transform_tolerance: 0.2
-      xy_goal_tolerance: 0.10
+      xy_goal_tolerance: 0.05
       trans_stopped_velocity: 0.25
       short_circuit_trajectory_evaluation: True
       stateful: True
