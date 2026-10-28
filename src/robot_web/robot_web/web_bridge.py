@@ -507,6 +507,9 @@ def main(args=None):
     except KeyboardInterrupt:
         pass
     finally:
+        # Foxy: destruir los clientes de accion antes que el nodo
+        node.nav_client.destroy()
+        node.wp_client.destroy()
         node.destroy_node()
         if rclpy.ok():
             rclpy.shutdown()
