@@ -25,7 +25,7 @@ rosbridge y roslibjs.
 
 | | Versión |
 |---|---|
-| Sistema operativo | Ubuntu 20.04 (también funciona en **WSL2** con Windows 11) |
+| Sistema operativo | Ubuntu 20.04 (también funciona en **WSL2** con Windows 10/11: ver [guía de instalación](docs/INSTALACION_WSL2.md)) |
 | ROS 2 | Foxy Fitzroy |
 | Simulador | Gazebo Classic 11 |
 | Navegador | Cualquiera moderno (Chrome, Edge, Firefox) |
@@ -40,6 +40,8 @@ navegador necesita conexión.
 Si todavía no está instalado, sigue la
 [guía oficial](https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html)
 (paquete `ros-foxy-desktop`).
+
+¿Usas Windows? La guía [docs/INSTALACION_WSL2.md](docs/INSTALACION_WSL2.md) explica paso a paso cómo instalar Ubuntu 20.04 con WSL2 y ROS 2 Foxy.
 
 ### 2. Dependencias del proyecto
 
