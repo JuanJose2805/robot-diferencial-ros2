@@ -5,6 +5,10 @@ de la definición del robot (URDF/XACRO con LiDAR 2D) hasta la navegación
 autónoma con SLAM y Nav2, y se maneja desde una interfaz web hecha con
 rosbridge y roslibjs.
 
+![Interfaz web: mapa con la ruta, LiDAR y controles](docs/interfaz_web.png)
+
+![Simulación en Gazebo con el LiDAR](docs/gazebo.png)
+
 **Qué incluye:**
 - **Modelo y mundo:** robot diferencial con LiDAR 2D (URDF/XACRO) y una arena propia de 10 × 10 m con obstáculos.
 - **Arranque y control:** un launch único que abre la simulación, RViz2, el controlador de posición y la teleoperación WASD.
