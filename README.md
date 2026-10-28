@@ -55,7 +55,7 @@ sudo apt install -y \
 
 ```bash
 mkdir -p ~/ros2_ws && cd ~/ros2_ws
-git clone https://github.com/JuanJose2805/robotics40-robot-diferencial.git .
+git clone https://github.com/JuanJose2805/robot-diferencial-ros2.git .
 source /opt/ros/foxy/setup.bash
 
 # Revisa que no falte ninguna dependencia declarada en los package.xml
